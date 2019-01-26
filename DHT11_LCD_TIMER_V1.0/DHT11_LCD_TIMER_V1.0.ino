@@ -100,7 +100,7 @@ if (! RTC.isrunning()) // se verifica si el modulo rtc esta en funcionamiento, d
           lcd.println("RTC is NOT running!");
           delay(10000);
           }
-          RTC.adjust(DateTime(__DATE__, __TIME__)); //esta funcion establecera en el modulo la fecha de creación del archivo .hex generado al compilar el sketch.
+          // RTC.adjust(DateTime(__DATE__, __TIME__)); // SI SE HABILITA, CADA VEZ QUE SE APAGA VUELVE A LA HROA QUE SE CREO EL PROGRAMA
 }
 
 void loop()       {
