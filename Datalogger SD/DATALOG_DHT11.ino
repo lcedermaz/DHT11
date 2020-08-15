@@ -28,6 +28,8 @@ byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
 RTC_DS1307 RTC;
 #define DS1307_I2C_ADDRESS 0x68  // Dirección I2C 
 
+// ------------IMPORTANTE -------------//
+// Para setear el reloj usar el codigo "RTCtime_example" de arduino y descometnar #define DEBUG
 //------------------------------ DHT11
 
 #include "DHT.h"
