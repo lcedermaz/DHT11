@@ -13,8 +13,12 @@ LiquidCrystal_I2C lcd(0x27,16,2);//Direccion de LCD
 
 #include <SPI.h>
 #include <SD.h>
-const int chipSelect = 4;
+const int chipSelect = 10; // Es el 10 para el modulo shield con SD
 File myFile;
+
+Sd2Card card;
+SdVolume volume;
+SdFile root;
 
 // -- Variables Globales--
 byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
@@ -58,7 +62,7 @@ void setup()
   
   lcd.init(); 
   lcd.backlight(); 
-  
+ 
   lcd.setCursor(2, 0);
   lcd.print("Provefarma SA");
 
@@ -71,35 +75,26 @@ void setup()
   lcd.setCursor(2, 1);
   lcd.print(" Cargando...");
   delay(1000);
-  lcd.clear();
-
-  lcd.setCursor(2, 0);
-  lcd.print("Provefarma SA");
-
-  lcd.setCursor(2, 1);
-  lcd.print(" Cargando.");
-  delay(1000);
-  lcd.setCursor(2, 1);
-  lcd.print(" Cargando..");
-  delay(1000);
-  lcd.setCursor(2, 1);
-  lcd.print(" Cargando...");
-  delay(100);
   lcd.clear();
   
 //------Iniciamos DHT11 ------//
   
   dht.begin();
     
-//------ Iniciamos SD ------//
+//------ Iniciamos Monistor Serial ------//
     
  Serial.begin(9600);
- Serial.print(F("Iniciando SD ..."));
- if (!SD.begin(4)) {
+
+//------ Iniciamos SD ------//
+   
+  Serial.print(F("Iniciando SD ..."));
+  
+  if ((!SD.begin(10))) {
     Serial.println(F("No se pudo inicializar"));
     return;
   }
     Serial.println(F("inicializacion exitosa"));
+          
     if(!SD.exists("datalog.csv"))
       {
       myFile = SD.open("datalog.csv", FILE_WRITE);
@@ -108,13 +103,14 @@ void setup()
         myFile.println("Fecha,Hora,T,F,h");
         myFile.close();
       } else {
-
+        
         Serial.println(F("Error creando el archivo datalog.csv"));
       }
     }
   }
 
 // -- Conversor BCD ==> DECIMAL --
+
 byte bcdToDec(byte val)
 {
   return ( (val/16*10) + (val%16) );
@@ -128,7 +124,6 @@ if (retorno.length() < 2)
   retorno = "0" + retorno;
 return retorno;
   
-// Configuración para que inicie promedio  
             
 }
 
@@ -142,19 +137,20 @@ if(currentMillis - previousMillis >= interval) {
     
   previousMillis = currentMillis;
   
-  float LCD_Monitor ();
+  LCD_Monitor ();
 }
   
 //------------------------------SD
 
-  unsigned long currentMillis_1 = millis();   // Conteo de tiempo para la interrupción
+  unsigned long currentMillis_1 = millis();   
  
 if(currentMillis_1 - previousMillis_1 >= interval_1) {
     
   previousMillis_1 = currentMillis_1;
 
-  void SDlog ();
+  SDlog ();
 }
+
 //------------------------------DHT11
 
   unsigned long currentMillis_2 = millis();   
@@ -163,12 +159,12 @@ if(currentMillis_2 - previousMillis_2 >= interval_2) {
     
   previousMillis_2 = currentMillis_2;
   
-  float SensorTemp_Hum ();
-      }
+   // SensorTemp_Hum ();
+}
 
 //------------------------------RTC
 
-float reloj_RTC ();
+  reloj_RTC ();
 
 }
 
@@ -197,7 +193,7 @@ void reloj_RTC () {
 
 void SensorTemp_Hum (){
 
-      if (isnan(h) || isnan(t) || isnan(f)){
+    if (isnan(h) || isnan(t) || isnan(f)){
         lcd.print("error sensor DHT !");
         return;
           }
@@ -205,42 +201,76 @@ void SensorTemp_Hum (){
    h = dht.readHumidity();  // Humedad (Se cambio a número entero para los fines de ahorrar espacio en la pantalla LCD)
    t = dht.readTemperature();  // Celcius
    f = dht.readTemperature(true);  // Fahenheit      
+
   }
 
 void LCD_Monitor () {
   
 //------------------------------ HORA / MINUTO
 
-lcd.setCursor(9,0);
+lcd.setCursor(10,0);
 lcd.print(fprint(hour)); //imprime hora
 lcd.print(':');
 lcd.print(fprint(minute)); //imprime minutos
 
+lcd.setCursor(8,1);
+lcd.print(fprint(dayOfMonth)); //Día
+lcd.print('/');
+lcd.print(fprint(dayOfWeek)); //Mes
+lcd.print('/');
+lcd.print(fprint(year)); //Mes
 //------------------------------Temperatura
   
+  lcd.setCursor(3,0);
+  lcd.print(t,0);
+  lcd.setCursor(0,0); 
+  lcd.print("T :");
+  lcd.setCursor(5,0);
+  lcd.print((char)223);
+  lcd.setCursor(6,0);
+  lcd.print("C"); 
+
+  /*
   if (t < 50) {       // si es mayor a 50, OL, se hace por que se corre la letra TH o TS cuando empieza a contar para el promedio
-  lcd.setCursor(0,0);
-  lcd.print(t);
-  lcd.print("T "); 
+  lcd.setCursor(4,0);
+  lcd.print(t,0);
+  lcd.setCursor(0,0); 
+  lcd.print("T :");
+  lcd.setCursor(6,0);
+  lcd.print((char)223);
+  lcd.setCursor(7,0);
+  lcd.print("C"); 
   } else {
   lcd.setCursor(0,0);
   lcd.print("OL");
   lcd.print("T ");
 } 
-
+*/
 //------------------------------humedad Relativa
 
+  lcd.setCursor(3,1);
+  lcd.print(h,1); 
+  lcd.setCursor(0,1);
+  lcd.print("HR:");
+  lcd.setCursor(5,1);
+  lcd.print("%");
+
+
+  /*
   if (h<100){
-  lcd.setCursor(8,1);
-  lcd.print(h); // con el floor deja una décima para visualizar (****floor (h*10)/10) (****
-  lcd.setCursor(12,1);
-  lcd.print(" HR%");
-                } else {     // Con este IF, pone a 100 cuando la humedad es mayor a 100% (Cuando el cálculo bate fruta en realidad)
+  lcd.setCursor(3,1);
+  lcd.print(h,1); 
+  lcd.setCursor(0,1);
+  lcd.print("HR:");
+  lcd.setCursor(5,1);
+  lcd.print(" %");
+                } else {     // Con el dht 11 no es necesaria esta funcion
   lcd.setCursor(8,1);
   lcd.print("100.0"); 
   lcd.setCursor(13,1);
   lcd.print("HR%");
                 }
+  */
  }
 
 
@@ -248,7 +278,7 @@ lcd.print(fprint(minute)); //imprime minutos
  
  void SDlog () {
   
-   myFile = SD.open("datalog.csv", FILE_WRITE);//abrimos  el archivo
+  myFile = SD.open("datalog.csv", FILE_WRITE);//abrimos  el archivo
   
   if (myFile) { 
         
