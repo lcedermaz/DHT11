@@ -216,9 +216,9 @@ lcd.print(fprint(minute)); //imprime minutos
 lcd.setCursor(8,1);
 lcd.print(fprint(dayOfMonth)); //Día
 lcd.print('/');
-lcd.print(fprint(dayOfWeek)); //Mes
+lcd.print(fprint(month)); //Mes
 lcd.print('/');
-lcd.print(fprint(year)); //Mes
+lcd.print(fprint(year)); //Año
 //------------------------------Temperatura
   
   lcd.setCursor(3,0);
