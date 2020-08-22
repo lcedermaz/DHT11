@@ -28,19 +28,17 @@ byte second, minute, hour, dayOfWeek, dayOfMonth, month, year;
 RTC_DS1307 RTC;
 #define DS1307_I2C_ADDRESS 0x68  // Dirección I2C 
 
-// ------------IMPORTANTE -------------//
-// Para setear el reloj usar el codigo "RTCtime_example" de arduino y descometnar #define DEBUG
 //------------------------------ DHT11
 
 #include "DHT.h"
 
-#define DHTPIN 6 // what digital pin we're connected to
+#define DHTPIN 2 // what digital pin we're connected to
 #define DHTTYPE DHT11   // DHT 22  (AM2302), AM2321
 DHT dht(DHTPIN, DHTTYPE);
 
-int h = 85 ; // humedad (Número entero)
-float t = 23 ; // Temperatura (Celsius)
-float f = 65 ; // Temperatura (Farenheit)              
+int h ; // humedad (Número entero)
+float t ; // Temperatura (Celsius)
+float f ; // Temperatura (Farenheit)              
 
 //------------------------------ LCD
 
@@ -161,7 +159,8 @@ if(currentMillis_2 - previousMillis_2 >= interval_2) {
     
   previousMillis_2 = currentMillis_2;
   
-   // SensorTemp_Hum ();
+  SensorTemp_Hum ();
+
 }
 
 //------------------------------RTC
